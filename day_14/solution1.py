@@ -16,7 +16,7 @@ for line in lines[2:]:
     pair, insert = line.strip().split(" -> ")
     rules[pair] = insert
 
-for i in range(10):
+for i in range(3):
     new_polymer = []
     for j in range(len(polymer)-1):
         pair = "".join(polymer[j:j+2])
@@ -24,11 +24,11 @@ for i in range(10):
     new_polymer.append(polymer[-1])
     polymer = new_polymer
 
+items,counts = np.unique(polymer, return_counts=True)
 
-#unique_elements = set(polymer)
+elems = {i:c for i,c in zip(items,counts)}
 
-#counts = [polymer.count(elem) for elem in unique_elements]
-_,counts = np.unique(polymer, return_counts=True)
+print(elems)
 
 max_count = max(counts)
 min_count = min(counts)

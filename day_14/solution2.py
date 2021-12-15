@@ -17,7 +17,7 @@ for line in lines[2:]:
     rules[pair] = insert
 
 pair_counts = {key:0 for key in rules.keys()}
-elem_counts = {key:0 for key in set(rules.values())}
+elem_counts = {key:0 for key in sorted(set(rules.values()))}
 for char in polymer:
     elem_counts[char] += 1
 
@@ -28,15 +28,18 @@ for i in range(len(polymer)-1):
 #new_counts = {k:v for k,v in pair_counts.items()}
  
 for i in range(40):   
-    new_counts = {k:0 for k in pair_counts.keys()}
+    new_counts = {k:v for k,v in pair_counts.items()}
     for k,v in pair_counts.items():
         if v == 0: continue
         insert = rules[k]
-        new_counts[k[0]+insert] = pair_counts[k[0]+insert] + 1
-        new_counts[insert + k[1]] = pair_counts[insert + k[1]] + 1
-        elem_counts[insert] += 1
+        new_1 = k[0] + insert
+        new_2 = insert + k[1]
+        new_counts[k] -= v
+        new_counts[new_1] += v
+        new_counts[new_2] += v
+        
+        elem_counts[insert] += v
     pair_counts = new_counts
-
 
 max_count = max(elem_counts.values())
 min_count = min(elem_counts.values())
