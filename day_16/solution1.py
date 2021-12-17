@@ -9,6 +9,44 @@ os.chdir("day_16")
 with open("input.txt") as f:
     line = f.readline().strip()
 
+def parse_operator(bits):
+    op_type = bits[0]
+    data = bits[1:]
+    value = 0
+    version = 0
+    if op_type == "1": # num of packets
+        num_packets = int(data[:11],2)
+        start = 11
+        for _ in range(num_packets):
+            val, ver, idx = decode_packet(data[start:])
+            start += idx
+            value += val
+            version += ver
+        idx = start
+
+    else: # num of bits
+        num_bits = int(data[:15],2)
+        val, ver, _ = decode_packet(data[15:15+num_bits+1])
+        value += val
+        version += ver
+        idx = 15 + num_bits + 1
+    return version, value, idx
+
+def parse_literal(bits):
+    i = 0
+    nums = []
+    while(bits[5*i] == "1"):
+        literal = bits[1+5*i:5+5*i]
+        i += 1
+        nums.append(literal)
+
+    literal = bits[1+5*i:5+5*i]
+    idx = 5+5*i
+    nums.append(literal)
+
+    number = "".join(nums)
+    value = int(number,2)
+    return value, idx
 
 def decode_packet(bin_string):
     if len(bin_string) < 6:
@@ -18,36 +56,13 @@ def decode_packet(bin_string):
     value = 0
     
     if packet_type == "100": # literal value
-        i = 0
-        nums = []
-        while(bin_string[6+5*i] == "1"):
-            i += 1
-            literal = bin_string[7+5*i:11+5*i]
-            nums.append(str(int(literal,2)))
-
-        literal = bin_string[7+5*i:11+5*i]
-        idx = 11+5*i+1
-        #idx = idx + (4 - idx % 4)
-        nums.append(str(int(literal,2)))
-        value = int("".join(nums))
+        value, idx = parse_literal(bin_string[6:])
+        idx += 6
 
     else: # operator
-        if bin_string[6] == "1": # num of packets
-            num_packets = int(bin_string[7:18],2)
-            start = 18
-            for i in range(num_packets):
-                val, ver, idx = decode_packet(bin_string[start:])
-                start += idx + 1
-                value += val
-                version += ver
-            idx = start 
-
-        else: # num of bits
-            num_bits = int(bin_string[7:22],2)
-            val, ver, _ = decode_packet(bin_string[22:22+num_bits+1])
-            value += val
-            version += ver
-            idx = 22 + num_bits + 1
+        ver, value, idx = parse_operator(bin_string[6:])
+        version += ver
+        idx += 6
     print(value, version, idx)
     return value, version, idx
 
