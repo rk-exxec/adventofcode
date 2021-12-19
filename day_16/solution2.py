@@ -3,25 +3,24 @@ import sys
 
 import numpy as np
 import binascii
+import math
 
 os.chdir("day_16")
 
 with open("input.txt") as f:
     line = f.readline().strip()
 
-def parse_operator(bits):
+def parse_operator(bits, op):
     op_type = bits[0]
     data = bits[1:]
-    value = 0
-    version = 0
+    values = []
     if op_type == "1": # num of packets
         num_packets = int(data[0:11],2)
         start = 11
         for _ in range(num_packets):
-            val, ver, idx = decode_packet(data[start:])
+            val, idx = decode_packet(data[start:])
             start += idx
-            value += val
-            version += ver
+            values.append(val)
         idx = start 
 
     else: # num of bits
@@ -29,13 +28,33 @@ def parse_operator(bits):
         data = data[15:]
         idx = 0
         while(True):
-            val, ver, i = decode_packet(data[idx:])
+            val, i = decode_packet(data[idx:])
             idx += i
-            value += val
-            version += ver
+            values.append(val)
             if idx == num_bits: break
         idx += 15
-    return version, value, idx + 1
+
+    value = apply_operator(values, op)
+    return value, idx + 1
+
+def apply_operator(values, op):
+    if op == 0:
+        return sum(values)
+    elif op == 1:
+        return math.prod(values)
+    elif op == 2:
+        return min(values)
+    elif op == 3:
+        return max(values)
+    elif op == 5:
+        return int(values[0] > values[1])
+    elif op == 6:
+        return int(values[0] < values[1])
+    elif op == 7:
+        return int(values[0] == values[1])
+    else:
+        print("invalid operator")
+        return 0
 
 def parse_literal(bits):
     i = 0
@@ -55,22 +74,20 @@ def parse_literal(bits):
 
 def decode_packet(bin_string):
     version = int(bin_string[0:3],2)
-    packet_type = bin_string[3:6]
+    packet_type = int(bin_string[3:6],2)
     value = 0
-    if packet_type == "100": # literal value
+    if packet_type == 4: # literal value
         value, idx = parse_literal(bin_string[6:])
         idx += 6
 
     else: # operator
-        ver, value, idx = parse_operator(bin_string[6:])
-        version += ver
+        value, idx = parse_operator(bin_string[6:], packet_type)
         idx += 6
-    print(value, version, idx)
-    return value, version, idx
+
+    return value, idx
 
 bin_string = bin(int(line,16))[2:].zfill(len(line*4))
 
-val, ver, idx = decode_packet(bin_string)
+val, idx = decode_packet(bin_string)
 
 print(val)
-print(ver)
